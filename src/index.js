@@ -2,6 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+// 盤の1辺のマス数
+const row_col_max = 3
+//// 勝利ルール（縦横斜めに並べる数）
+//const win_num = 3
+
 function Square(props) {
   return (
     <button className="square" onClick={props.onClick}>
@@ -11,61 +16,70 @@ function Square(props) {
 }
 
 class Board extends React.Component {
+  // コンストラクタ
   constructor(props) {
     super(props);
     this.state = {
-      squares: Array(9).fill(null),
-      xIsNext: true,
+      squares: JSON.parse(JSON.stringify((new Array(row_col_max)).fill((new Array(row_col_max)).fill(null)))),
+      isNext: true,
+      winner: null,
     };
   }
 
-  handleClick(i) {
+  // クリックイベント
+  handleClick(col, row) {
     const squares = this.state.squares.slice();
-    if (calculateWinner(squares) || squares[i]) {
+
+    // 勝負が決まっている、もしくは、既に選択済みの場合、無効とする
+    if (this.state.winner || squares[col][row]) {
       return;
     }
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+    // データ更新
+    squares[col][row] = this.state.isNext ? '○' : '●';
     this.setState({
       squares: squares,
-      xIsNext: !this.state.xIsNext,
+      isNext: !this.state.isNext,
+      winner: calculateWinner(squares, col, row),
     });
   }
 
-  renderSquare(i) {
+  // 表示更新メソッド
+  renderSquare(col, row) {
     return (
       <Square
-        value={this.state.squares[i]}
-        onClick={() => this.handleClick(i)}
+        value = {this.state.squares[col][row]}
+        onClick={() => this.handleClick(col, row)}
       />
     );
   }
 
+  // 表示更新
   render() {
-    const winner = calculateWinner(this.state.squares);
     let status;
-    if (winner) {
-      status = 'Winner: ' + winner;
+    if (this.state.winner) {
+      status = 'Winner: ' + this.state.winner;
     } else {
-      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      status = 'Next player: ' + (this.state.isNext ? '○' : '●');
     }
 
     return (
       <div>
         <div className="status">{status}</div>
         <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
+          {this.renderSquare(0, 0)}
+          {this.renderSquare(0, 1)}
+          {this.renderSquare(0, 2)}
         </div>
         <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
+          {this.renderSquare(1, 0)}
+          {this.renderSquare(1, 1)}
+          {this.renderSquare(1, 2)}
         </div>
         <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
+          {this.renderSquare(2, 0)}
+          {this.renderSquare(2, 1)}
+          {this.renderSquare(2, 2)}
         </div>
       </div>
     );
@@ -95,21 +109,29 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
-function calculateWinner(squares) {
+// 選択されたマスを指標とし、勝利が決まったかを判定
+function calculateWinner(squares, col, row) {
   const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
+    // 横について
+    [[0,0], [0,1], [0,2]],
+    [[1,0], [1,1], [1,2]],
+    [[2,0], [2,1], [2,2]],
+    // 縦について
+    [[0,0], [1,0], [2,0]],
+    [[0,1], [1,1], [2,1]],
+    [[0,2], [1,2], [2,2]],
+    // 斜めについて
+    [[0,0], [1,1], [2,2]],
+    [[0,2], [1,1], [0,2]],
   ];
+
+  // 判定処理
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+    if (squares[a[0]][a[1]] &&
+        squares[a[0]][a[1]] === squares[b[0]][b[1]] &&
+        squares[a[0]][a[1]] === squares[c[0]][c[1]]) {
+      return squares[col][row];
     }
   }
   return null;
