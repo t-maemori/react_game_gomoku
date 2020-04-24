@@ -4,8 +4,8 @@ import './index.css';
 
 // 盤の1辺のマス数
 const row_col_max = 3
-//// 勝利ルール（縦横斜めに並べる数）
-//const win_num = 3
+// 勝利ルール（縦横斜めに並べる数）
+const win_num = 3
 
 function Square(props) {
   return (
@@ -27,29 +27,29 @@ class Board extends React.Component {
   }
 
   // クリックイベント
-  handleClick(col, row) {
+  handleClick(row, col) {
     const squares = this.state.squares.slice();
 
     // 勝負が決まっている、もしくは、既に選択済みの場合、無効とする
-    if (this.state.winner || squares[col][row]) {
+    if (this.state.winner || squares[row][col]) {
       return;
     }
 
     // データ更新
-    squares[col][row] = this.state.isNext ? '○' : '●';
+    squares[row][col] = this.state.isNext ? '○' : '●';
     this.setState({
       squares: squares,
       isNext: !this.state.isNext,
-      winner: calculateWinner(squares, col, row),
+      winner: calculateWinner(squares, row, col),
     });
   }
 
   // 表示更新メソッド
-  renderSquare(col, row) {
+  renderSquare(row, col) {
     return (
       <Square
-        value = {this.state.squares[col][row]}
-        onClick={() => this.handleClick(col, row)}
+        value = {this.state.squares[row][col]}
+        onClick={() => this.handleClick(row, col)}
       />
     );
   }
@@ -110,28 +110,46 @@ ReactDOM.render(
 );
 
 // 選択されたマスを指標とし、勝利が決まったかを判定
-function calculateWinner(squares, col, row) {
+function calculateWinner(squares, row, col) {
+  // 判定するラインの計算用座標を格納
   const lines = [
-    // 横について
-    [[0,0], [0,1], [0,2]],
-    [[1,0], [1,1], [1,2]],
-    [[2,0], [2,1], [2,2]],
-    // 縦について
-    [[0,0], [1,0], [2,0]],
-    [[0,1], [1,1], [2,1]],
-    [[0,2], [1,2], [2,2]],
-    // 斜めについて
-    [[0,0], [1,1], [2,2]],
-    [[0,2], [1,1], [0,2]],
+    [[1, 0], [-1, 0]],  // 上-下（縦）
+    [[0, 1], [0, -1]],  // 左-右（横）
+//    [[1, 1], [-1, -1]], // 左上-右下（斜め）
+//    [[1, -1], [-1, 1]], // 左下-右上（斜め）
   ];
 
-  // 判定処理
+  // 計算する種類分ループ
   for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a[0]][a[1]] &&
-        squares[a[0]][a[1]] === squares[b[0]][b[1]] &&
-        squares[a[0]][a[1]] === squares[c[0]][c[1]]) {
-      return squares[col][row];
+    // カウンター（指標座標分を含めるため、1を初期値とする）
+    let count = 1;
+
+    for (let j = 0; j < lines[i].length; j++) {
+      const calc = lines[i][j];
+
+      let new_row = row;
+      let new_col = col;
+      while (true) {
+        new_row += calc[0];
+        new_col += calc[1];
+
+        // 座標が盤上ではなくなった場合、次の処理へ
+        if (new_row < 0 || new_row >= row_col_max ||
+            new_col < 0 || new_col >= row_col_max) {
+          break;
+        }
+
+        // 指標座標の値と同じであればカウント、異なる場合は次の処理へ
+        if (squares[row][col] === squares[new_row][new_col]) {
+          count++;
+        } else {
+          break;
+        }
+      }
+    }
+    // カウンターが勝利規定数以上である場合
+    if (count >= win_num) {
+      return squares[row][col];
     }
   }
   return null;
