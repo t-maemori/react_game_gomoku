@@ -1,3 +1,7 @@
+## ◆前提
+以下のチュートリアルを参考に、若干のアレンジを加えたものを作ることを目的とする。
+> https://ja.reactjs.org/tutorial/tutorial.html
+
 ## ◆導入環境
 
 ①「Node.js」をインストールしていること。
