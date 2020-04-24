@@ -55,22 +55,24 @@ class Board extends React.Component {
     );
   }
 
-  // 表示更新メソッド（行）
-  renderSquareRow(row) {
-    const rowSquares = [];
-    for (let col = 0; col < row_col_max; col++) {
-      rowSquares.push(this.renderSquareCell(row, col));
-    }
-    return rowSquares;
-  }
-
   // 表示更新メソッド（盤上）
   renderSquare() {
     const rowSquares = [];
+    // 行ループ
     for (let row = 0; row < row_col_max; row++) {
       rowSquares.push(
         <div key={row.toString()} className="board-row">
-          {this.renderSquareRow(row)}
+          {
+            // 即時関数とする
+            (() => {
+              const rowSquares = [];
+              // 列ループ
+              for (let col = 0; col < row_col_max; col++) {
+                rowSquares.push(this.renderSquareCell(row, col));
+              }
+              return rowSquares;
+            })()
+          }
         </div>
       );
     }
