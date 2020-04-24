@@ -3,9 +3,9 @@ import ReactDOM from 'react-dom';
 import './index.css';
 
 // 盤の1辺のマス数
-const row_col_max = 3
+const row_col_max = 19
 // 勝利ルール（縦横斜めに並べる数）
-const win_num = 3
+const win_num = 5
 
 function Square(props) {
   return (
@@ -44,14 +44,37 @@ class Board extends React.Component {
     });
   }
 
-  // 表示更新メソッド
-  renderSquare(row, col) {
+  // 表示更新メソッド（セル）
+  renderSquareCell(row, col) {
     return (
       <Square
+        key = {row * row_col_max + col}
         value = {this.state.squares[row][col]}
         onClick={() => this.handleClick(row, col)}
       />
     );
+  }
+
+  // 表示更新メソッド（行）
+  renderSquareRow(row) {
+    const rowSquares = [];
+    for (let col = 0; col < row_col_max; col++) {
+      rowSquares.push(this.renderSquareCell(row, col));
+    }
+    return rowSquares;
+  }
+
+  // 表示更新メソッド（盤上）
+  renderSquare() {
+    const rowSquares = [];
+    for (let row = 0; row < row_col_max; row++) {
+      rowSquares.push(
+        <div key={row.toString()} className="board-row">
+          {this.renderSquareRow(row)}
+        </div>
+      );
+    }
+    return rowSquares;
   }
 
   // 表示更新
@@ -66,21 +89,7 @@ class Board extends React.Component {
     return (
       <div>
         <div className="status">{status}</div>
-        <div className="board-row">
-          {this.renderSquare(0, 0)}
-          {this.renderSquare(0, 1)}
-          {this.renderSquare(0, 2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(1, 0)}
-          {this.renderSquare(1, 1)}
-          {this.renderSquare(1, 2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(2, 0)}
-          {this.renderSquare(2, 1)}
-          {this.renderSquare(2, 2)}
-        </div>
+        {this.renderSquare()}
       </div>
     );
   }
@@ -115,8 +124,8 @@ function calculateWinner(squares, row, col) {
   const lines = [
     [[1, 0], [-1, 0]],  // 上-下（縦）
     [[0, 1], [0, -1]],  // 左-右（横）
-//    [[1, 1], [-1, -1]], // 左上-右下（斜め）
-//    [[1, -1], [-1, 1]], // 左下-右上（斜め）
+    [[1, 1], [-1, -1]], // 左上-右下（斜め）
+    [[1, -1], [-1, 1]], // 左下-右上（斜め）
   ];
 
   // 計算する種類分ループ
